@@ -1,0 +1,70 @@
+dataset: critical heat flux (CHF) experiments, 1865 tests (Zhao 2020)
+prepared_by: Sude Tarhan
+created: 2026-11-02
+purpose: predict CHF from the test conditions (ME 405/505, Homework 1, item 4)
+one_row_is: one CHF experiment (one test point)
+
+source:
+  data: "X. Zhao, Data for: On the prediction of critical heat flux using a physics-informed machine learning-aided framework, Mendeley Data, version 1 (2020)"
+  doi: 10.17632/5p5h37tyv7.1
+  license: CC BY 4.0
+  paper: "X. Zhao et al., On the prediction of critical heat flux using a physics-informed machine learning-aided framework, Applied Thermal Engineering 164 (2020) 114540"
+  paper_doi: 10.1016/j.applthermaleng.2019.114540
+  original_experiments: "compiled from 10 literature sources (Table 1 of the paper); the author column gives the source of each row"
+
+working_fluid: "water (steam-water), assumed; it is not stated in the file or in the dataset description"
+uncertainty: "not reported in most of the original sources; the paper estimates 5 to 20 %"
+
+files:
+  raw: "raw/Data_CHF_Zhao_2020_ATE.csv (unchanged, 1865 rows, 10 columns)"
+  processed: "processed/chf_clean.csv (1864 rows, 10 columns)"
+  processing: "raw/Data_CHF_Zhao_2020_ATE.csv -> scripts/clean_chf.py -> processed/chf_clean.csv"
+
+format:
+  file_type: csv, comma separated, UTF-8 with BOM, Windows line endings
+  missing_value: none in the raw file
+  raw_column_names: "the raw names carry the unit, for example 'pressure [MPa]'; the processed names do not"
+
+columns:
+  author: {type: text, meaning: "source experiment of the row", values: 10}
+  geometry: {type: text, meaning: "test section", values: [tube, annulus, plate]}
+  pressure: {unit: MPa}
+  mass_flux: {unit: kg/m2-s}
+  x_e_out: {unit: "-", meaning: "outlet equilibrium quality, negative means subcooled"}
+  D_e: {unit: mm, meaning: "equivalent (hydraulic) diameter of the channel, from the nomenclature of the paper"}
+  D_h: {unit: mm, meaning: "heated diameter of the channel, from the nomenclature of the paper"}
+  length: {unit: mm, meaning: "heated length L_h, assumed"}
+  repeated_row: {added: true, meaning: "1 if the row repeats an earlier row in every column (id excluded), 0 otherwise"}
+
+target:
+  chf_exp: {unit: MW/m2, meaning: "experimental critical heat flux"}
+
+units_note: "The nomenclature of the paper gives pressure in Pa, CHF in W/m2 and lengths in m. The file has MPa, MW/m2 and mm. The units here come from the raw column names and were not checked against the paper."
+
+changes_from_raw:
+  - "dropped id (only a row number)"
+  - "removed the units from the column names"
+  - "added repeated_row (49 rows repeat an earlier row; they are kept)"
+  - "dropped 1 test with mass_flux = 0 (pool boiling, Kossolapov, plate)"
+
+checks_against_paper:
+  - "tests per source match Table 1 for all ten sources"
+  - "geometry, diameters and heated lengths are inside the ranges of Table 1"
+  - "outside the ranges of Table 1 (kept): 24 tests with outlet quality above 0.2 (up to 0.23), 3 Peskov tests at 10 MPa (table: 12 to 20), 1 Thompson test with outlet quality -0.87 (table lower limit about -0.45), 3 Kossolapov tests with mass flux 310, 336 and 340 (table: 350 to 2078)"
+  - "the removed test with mass_flux = 0 was also outside the range of its source"
+
+assumed:
+  - "the working fluid is water"
+  - "the column length is the heated length L_h"
+
+not_provided:
+  - column descriptions
+  - working fluid
+  - measurement uncertainty of each test
+  - test dates
+  - which repeated rows are real repeats
+
+open_questions:
+  - "how to split the data by source when building models (Thompson has 1202 of the 1865 tests)"
+  - "whether to drop the repeated rows"
+  - "whether the values outside the ranges of Table 1 should be removed"
